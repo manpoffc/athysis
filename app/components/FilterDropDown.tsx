@@ -35,7 +35,7 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
     setCitizen('all');
   };
   const applyFilters = () => {
-    const url = new URL('https://athysisbackend.onrender.com/filter');
+    const url = new URL(process.env.NEXT_PUBLIC_API_URL+'/filter');
     url.searchParams.append('minAge', ageRange[0].toString());
     url.searchParams.append('maxAge', ageRange[1].toString());
     url.searchParams.append('gender', gender);

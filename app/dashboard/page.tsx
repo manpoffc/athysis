@@ -30,7 +30,8 @@ const DashboardPage: React.FC = () => {
 useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch('https://athysisbackend.onrender.com/athletes'); // Replace with your server's actual URL
+        console.log('HELLOOOO',process.env.NEXT_PUBLIC_API_URL)
+        const response = await fetch(process.env.NEXT_PUBLIC_API_URL+'/athletes'); // Replace with your server's actual URL
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
