@@ -3,8 +3,8 @@ import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import React, { useState } from 'react';
 
 type Props = {};
-interface Athlete{
-    age: number;
+interface Athlete {
+  age: number;
   citizen: boolean;
   college: string;
   firstName: string;
@@ -15,78 +15,60 @@ interface Athlete{
   lastName: string;
   sport: string;
 }
-interface FilterDropDownProps{
-    filteredData: Athlete[]
-    setFilteredData: (data: Athlete[])=> void
+interface FilterDropDownProps {
+  fetchData: (data: any) => void
 }
-const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFilteredData}) => {
+const FilterDropDown: React.FC<FilterDropDownProps> = ({ fetchData }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [ageRange, setAgeRange] = useState([18, 65]);
-  const [gender, setGender] = useState('all');
-  const [citizen, setCitizen] = useState('all');
+  const [filteredData, setFilteredData] = useState({
+    ageRange: [18, 65],
+    gender: 'all',
+    citizen: 'all'
+  });
 
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
   };
 
   const resetFilters = () => {
-    setAgeRange([18, 65]);
-    setGender('all');
-    setCitizen('all');
-  };
-  const applyFilters = () => {
-    const url = new URL(process.env.NEXT_PUBLIC_API_URL+'/filter');
-    url.searchParams.append('minAge', ageRange[0].toString());
-    url.searchParams.append('maxAge', ageRange[1].toString());
-    url.searchParams.append('gender', gender);
-    url.searchParams.append('citizen', citizen);
-  
-    fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    setFilteredData({
+      ageRange: [18, 65],
+      gender: 'all',
+      citizen: 'all'
     })
-      .then((response) => {
-        if (response.ok) {
-          return response.json(); // Parse the response as JSON
-        } else {
-          console.error('Error while making the GET request');
-          throw new Error('Network response was not ok');
-        }
-      })
-      .then((data) => {
-        // Update the filteredData state with the data from the API response
-        setFilteredData(data);
-        setDropdownOpen(false);
-      })
-      .catch((error) => {
-        console.error('An error occurred:', error);
-      });
+    fetchData({
+      ageRange: [18, 65],
+      gender: 'all',
+      citizen: 'all'
+    })
   };
-    const handleMinAgeChange = (value: number) => {
-    if (value <= ageRange[1]) {
-      setAgeRange([value, ageRange[1]]);
-    } else {
-      setAgeRange([value, value]);
-    }
-  };
+  const handleCitizenChange = (data: string) => {
 
+    setFilteredData({ ...filteredData, citizen: data })
+  }
+
+  const handleGenderChange = (data: any) => {
+
+    setFilteredData({ ...filteredData, gender: data })
+
+  }
+  const handleMinAgeChange = (value: number) => {
+    const newMinAge = Math.min(value, filteredData.ageRange[1]);
+    setFilteredData({ ...filteredData, ageRange: [newMinAge, filteredData.ageRange[1]] });
+  };
+  
   const handleMaxAgeChange = (value: number) => {
-    if (value >= ageRange[0]) {
-      setAgeRange([ageRange[0], value]);
-    } else {
-      setAgeRange([value, value]);
-    }
+    const newMaxAge = Math.max(value, filteredData.ageRange[0]);
+    setFilteredData({ ...filteredData, ageRange: [filteredData.ageRange[0], newMaxAge] });
   };
-
+  
   return (
     <div className='relative p-2'>
       <button
         className='bg-cyan-700 flex justify-center items-center space-x-5 text-white w-28 h-10 rounded-md'
         onClick={toggleDropdown}
       >
-        <span>Filter</span> {isDropdownOpen? <FaArrowUp />:<FaArrowDown /> }
+        <span>Filter</span> {isDropdownOpen ? <FaArrowUp /> : <FaArrowDown />}
       </button>
       {isDropdownOpen && (
         <div className='absolute mt-2 p-8 w-72 bg-white border rounded-md shadow-md z-10'>
@@ -97,7 +79,7 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
               min='0'
               max='100'
               step='1'
-              value={ageRange[0]}
+              value={filteredData.ageRange[0]}
               onChange={(e) => handleMinAgeChange(parseInt(e.target.value))}
               className='w-full'
             />
@@ -106,12 +88,12 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
               min='0'
               max='100'
               step='1'
-              value={ageRange[1]}
+              value={filteredData.ageRange[1]}
               onChange={(e) => handleMaxAgeChange(parseInt(e.target.value))}
               className='w-full'
             />
             <p className='text-center'>
-              Age: {ageRange[0]} - {ageRange[1]}
+              Age: {filteredData.ageRange[0]} - {filteredData.ageRange[1]}
             </p>
           </div>
           <div className='mb-4'>
@@ -122,8 +104,8 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
                   type='radio'
                   name='gender'
                   value='all'
-                  checked={gender === 'all'}
-                  onChange={() => setGender('all')}
+                  checked={filteredData.gender === 'all'}
+                  onChange={() => { handleGenderChange('all') }}
                 />
                 All
               </label>
@@ -132,8 +114,8 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
                   type='radio'
                   name='gender'
                   value='male'
-                  checked={gender === 'male'}
-                  onChange={() => setGender('male')}
+                  checked={filteredData.gender === 'male'}
+                  onChange={() => { handleGenderChange('male') }}
                 />
                 Male
               </label>
@@ -142,8 +124,8 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
                   type='radio'
                   name='gender'
                   value='female'
-                  checked={gender === 'female'}
-                  onChange={() => setGender('female')}
+                  checked={filteredData.gender === 'female'}
+                  onChange={() => { handleGenderChange('female') }}
                 />
                 Female
               </label>
@@ -157,8 +139,8 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
                   type='radio'
                   name='citizen'
                   value='all'
-                  checked={citizen === 'all'}
-                  onChange={() => setCitizen('all')}
+                  checked={filteredData.citizen === 'all'}
+                  onChange={() => { handleCitizenChange('all') }}
                 />
                 All
               </label>
@@ -167,8 +149,8 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
                   type='radio'
                   name='citizen'
                   value='yes'
-                  checked={citizen === 'yes'}
-                  onChange={() => setCitizen('yes')}
+                  checked={filteredData.citizen === 'yes'}
+                  onChange={() => { handleCitizenChange('yes') }}
                 />
                 Yes
               </label>
@@ -177,8 +159,8 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
                   type='radio'
                   name='citizen'
                   value='no'
-                  checked={citizen === 'no'}
-                  onChange={() => setCitizen('no')}
+                  checked={filteredData.citizen === 'no'}
+                  onChange={() => { handleCitizenChange('no') }}
                 />
                 No
               </label>
@@ -193,7 +175,7 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({filteredData,setFiltered
             </button>
             <button
               className='bg-green-500 text-white w-20 h-8 rounded-md'
-              onClick={applyFilters}
+              onClick={() => fetchData(filteredData)}
             >
               Apply
             </button>
