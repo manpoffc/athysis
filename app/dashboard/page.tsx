@@ -110,7 +110,13 @@ const DashboardPage: React.FC = () => {
     <div>
       <div className="p-4 flex justify-start items-center mr-8 space-x-8">
         <FilterDropdown
-          fetchData={() => setPageNumber(0)}
+          fetchData={() => {
+            if (pageNumber === 0) {
+              fetchAthleteData();
+            } else {
+              setPageNumber(0);
+            }
+          }}
           filterData={filterData}
           setFilterData={setfilterData}
         />
