@@ -30,23 +30,26 @@ const DashboardPage: React.FC = () => {
   const [ageRange, setAgeRange] = useState([18, 65]);
   const [gender, setGender] = useState("all");
   const [citizen, setCitizen] = useState("all");
-  const [columnSort, setcolumnSort] = useState("");
-  const [isGenderSortedClicked, setIsGenderSortedClicked] = useState(false);
-  const [isAgeSortedClicked, setIsAgeSortedClicked] = useState(false);
-  const [isCitizenSortedClicked, setIsCitizenSortedClicked] = useState(false);
+  const [columnSort, setColumnSort] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [sortedData, setSortedData] = useState<Athlete[]>([]);
   const [data, setData] = useState<Athlete[]>([]);
   const [openModal, setOpenModal] = useState<string | undefined>();
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
 
   const fetchAthleteData = async () => {
-    console.log("#####", filterData);
     const url = new URL(process.env.NEXT_PUBLIC_API_URL + "/athletes");
     if (filterData && filterData.ageRange[0]) {
       url.searchParams.append("minAge", filterData.ageRange[0].toString());
       url.searchParams.append("maxAge", filterData.ageRange[1].toString());
       url.searchParams.append("gender", filterData.gender);
       url.searchParams.append("citizen", filterData.citizen);
+
+      if (columnSort && columnSort != "") {
+        url.searchParams.append("sortBy", columnSort);
+
+        url.searchParams.append("sortOrder", sortOrder);
+      }
     }
 
     url.searchParams.append("page", pageNumber.toString());
@@ -79,14 +82,27 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     console.log("RUNNING", pageNumber);
     fetchAthleteData();
-  }, [pageNumber]);
+  }, [pageNumber, columnSort, sortOrder]);
 
+  useEffect(() => {});
   const handleRowClick = (athlete: Athlete) => {
     setSelectedAthlete(athlete);
     setOpenModal("dismissible");
   };
 
-  const updateSort = () => {};
+  const updateSort = async (columnName: string) => {
+    let currenSort = sortOrder;
+    if (columnName === columnSort) {
+      currenSort = sortOrder === "asc" ? "desc" : "asc";
+    } else {
+      currenSort = "asc";
+      setColumnSort(columnName);
+    }
+    setSortOrder(currenSort);
+
+    setPageNumber(0);
+  };
+
   const applyFilters = (filtered: Athlete[]) => {
     setSortedData(filtered);
   };
@@ -104,18 +120,18 @@ const DashboardPage: React.FC = () => {
           <Table.Head>
             <Table.HeadCell>First Name</Table.HeadCell>
             <Table.HeadCell>Last Name</Table.HeadCell>
-            <Table.HeadCell onClick={() => updateSort()} className="">
+            <Table.HeadCell onClick={() => updateSort("age")} className="">
               <span className="cursor-pointer">Age</span>
             </Table.HeadCell>
             <Table.HeadCell
               className="cursor-pointer"
-              onClick={() => updateSort()}
+              onClick={() => updateSort("gender")}
             >
               Gender{" "}
             </Table.HeadCell>
             <Table.HeadCell>College</Table.HeadCell>
             <Table.HeadCell>Instagram</Table.HeadCell>
-            <Table.HeadCell onClick={() => updateSort()} className="">
+            <Table.HeadCell onClick={() => updateSort("citizen")} className="">
               <span className="cursor-pointer">Citizen</span>
             </Table.HeadCell>
           </Table.Head>
